@@ -1,0 +1,25 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/api",
+      "destination": "https://aviana-spa-server.vercel.app/api"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://aviana-spa-server.vercel.app/api/:path*"
+    },
+    {
+      "source": "/((?!uploads/|assets/).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/:path*",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    }
+  ]
+}

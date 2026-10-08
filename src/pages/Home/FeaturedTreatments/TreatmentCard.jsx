@@ -1,0 +1,5 @@
+import { Link } from 'react-router-dom';
+import MediaImage from '../../../components/MediaImage';
+import { money } from '../../../utils/format';
+
+export default function TreatmentCard({ treatment }) { return <article className="group overflow-hidden border border-black/5 bg-white"><Link to={`/services/${treatment._id}`}><MediaImage src={treatment.image} name={treatment.title} alt={treatment.title} wrapperClassName="aspect-[4/3]" className="h-full w-full object-cover transition duration-700 group-hover:scale-105"/><div className="p-5 text-left"><p className="text-[10px] uppercase tracking-[0.16em] text-[#b08d57]">{treatment.category}</p><h3 className="mt-2 font-serif text-xl text-[#171512]">{treatment.title}</h3><p className="mt-3 line-clamp-2 text-sm font-light leading-6 text-[#918b84]">{treatment.description}</p><div className="mt-5 flex items-center justify-between gap-3 text-[10px] uppercase tracking-[0.16em] text-[#8f7042]"><span>{treatment.durationMinutes} min · From {money(treatment.spaPrice)}</span><span>VIEW →</span></div></div></Link></article>; }

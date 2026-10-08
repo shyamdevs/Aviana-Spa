@@ -1,0 +1,40 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+.env
+.env.*
+!.env.example
+!server/.env.example
+
+# Runtime uploads: preserve checked-in seed media only.
+server/uploads/*
+!server/uploads/.gitkeep
+server/uploads/therapists-seed/
+!server/uploads/therapists-seed/
+!server/uploads/therapists-seed/*.webp
+server/uploads/services-seed/
+!server/uploads/services-seed/
+!server/uploads/services-seed/*.webp
+
+logs/
