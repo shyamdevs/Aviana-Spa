@@ -6,7 +6,7 @@ import PageHero from '../shared/PageHero';
 import PageCTA from '../shared/PageCTA';
 import MediaImage from '../../components/MediaImage';
 import { api } from '../../services/api';
-import heroImage from '../../assets/images/spa-interior.jpg';
+import heroImage from '../../assets/images/couple.avif';
 
 const filters = [{ value: 'any', label: 'All' }, { value: 'female', label: 'Women' }, { value: 'male', label: 'Men' }];
 
