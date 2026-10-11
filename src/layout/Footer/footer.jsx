@@ -4,13 +4,13 @@ import FooterNewsletter from "./FooterNewsletter";
 import { exploreLinks, visit, openingHours } from "./footerData";
 
 const heading = "text-[10px] font-medium uppercase tracking-[0.35em] text-[#B08D57]";
-const linkCls = "inline-flex min-h-11 items-center transition-colors duration-300 hover:text-[#B08D57]";
+const linkCls = "transition-colors duration-300 hover:text-[#B08D57]";
 
 export default function LuxuryFooter() {
   return (
-    <footer className="border-t border-[#B08D57]/25 bg-[#f6f4ee] px-6 pt-14 sm:px-10 sm:pt-20 lg:px-12 lg:pt-28">
+    <footer className="border-t border-[#B08D57]/25 bg-[#f6f4ee] px-6 pt-20 sm:px-10 lg:px-12 lg:pt-28">
       <div className="mx-auto max-w-7xl">
-        <div className="grid gap-10 border-b border-[#B08D57]/25 pb-12 sm:gap-16 sm:pb-16 lg:grid-cols-2 lg:gap-24">
+        <div className="grid gap-16 border-b border-[#B08D57]/25 pb-16 lg:grid-cols-2 lg:gap-24">
           <FooterNewsletter />
           <div className="flex items-end lg:justify-end">
             <Link to="/booking?new=1" className="group inline-flex min-h-11 items-center gap-4 border-b border-[#B08D57] pb-2 font-serif text-2xl font-light text-[#171512] transition-colors hover:text-[#8f7042] sm:text-3xl">
@@ -20,7 +20,7 @@ export default function LuxuryFooter() {
           </div>
         </div>
 
-        <div className="grid gap-10 py-12 sm:grid-cols-2 sm:gap-12 sm:py-16 lg:grid-cols-4">
+        <div className="grid gap-12 py-16 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <Link to="/" aria-label="Aviana Spa Home">
               <img src={logo} alt="Aviana Spa" className="h-10 w-auto" />
@@ -32,7 +32,7 @@ export default function LuxuryFooter() {
 
           <nav aria-label="Footer">
             <h3 className={heading}>Explore</h3>
-            <ul className="mt-4 space-y-0 text-sm font-light text-[#4a4a4a]">
+            <ul className="mt-6 space-y-3 text-sm font-light text-[#4a4a4a]">
               {exploreLinks.map((l) => (
                 <li key={l.to}><Link to={l.to} className={linkCls}>{l.label}</Link></li>
               ))}

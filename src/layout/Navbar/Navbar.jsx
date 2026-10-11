@@ -5,7 +5,7 @@ import NavLinks from "./NavLinks";
 import MobileMenu from "./MobileMenu";
 import { useAuth } from "../../hooks/useAuth";
 
-const Navbar = ({ solid = false, onDark = false }) => {
+const Navbar = ({ solid = false }) => {
   const { pathname } = useLocation();
   const { user, logout } = useAuth();
   const [scrolled, setScrolled] = useState(false);
@@ -28,9 +28,6 @@ const Navbar = ({ solid = false, onDark = false }) => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
-
-  // Light text only while the bar is transparent over a dark hero photo.
-  const light = onDark && !solid && !scrolled && !mobileOpen;
 
   return (
     <>
@@ -67,18 +64,18 @@ const Navbar = ({ solid = false, onDark = false }) => {
           <Logo />
 
           {/* Desktop Navigation */}
-          <NavLinks light={light} />
+          <NavLinks />
 
           {/* Right Side */}
           <div className="flex items-center gap-2 sm:gap-3">
 
             {user ? (
               <div className="hidden items-center gap-3 md:flex">
-                <Link to="/dashboard" className={`inline-flex min-h-10 items-center text-[10px] font-medium tracking-[0.18em] hover:text-[#b08d57] ${light ? "text-white/90" : "text-[#6d655a]"}`}>ACCOUNT</Link>
-                <button type="button" onClick={logout} className={`inline-flex min-h-10 items-center text-[10px] font-medium tracking-[0.18em] hover:text-[#b08d57] ${light ? "text-white/90" : "text-[#6d655a]"}`}>LOG OUT</button>
+                <Link to="/dashboard" className="text-[10px] font-medium tracking-[0.18em] text-[#6d655a] hover:text-[#b08d57]">ACCOUNT</Link>
+                <button type="button" onClick={logout} className="text-[10px] font-medium tracking-[0.18em] text-[#6d655a] hover:text-[#b08d57]">LOG OUT</button>
               </div>
             ) : (
-              <Link to="/login" className={`hidden min-h-10 items-center text-[10px] font-medium tracking-[0.18em] hover:text-[#b08d57] md:inline-flex ${light ? "text-white/90" : "text-[#6d655a]"}`}>SIGN IN</Link>
+              <Link to="/login" className="hidden text-[10px] font-medium tracking-[0.18em] text-[#6d655a] hover:text-[#b08d57] md:inline-flex">SIGN IN</Link>
             )}
 
             {/* Desktop Book Button */}
@@ -114,8 +111,7 @@ const Navbar = ({ solid = false, onDark = false }) => {
                 mobileOpen ? "Close navigation" : "Open navigation"
               }
               aria-expanded={mobileOpen}
-              aria-controls="mobile-menu"
-              className={`relative z-[110] flex h-11 w-11 items-center justify-center transition-colors duration-300 hover:text-[#c29d59] md:hidden ${light ? "text-white" : "text-gray-800"}`}
+              className="relative z-[110] flex h-10  w-10 items-center justify-center text-gray-800 transition-colors duration-300 hover:text-[#c29d59] md:hidden "
             >
               {mobileOpen ? (
                 <svg

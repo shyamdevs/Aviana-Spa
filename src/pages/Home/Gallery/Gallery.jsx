@@ -43,13 +43,13 @@ const Gallery = () => {
             <span className="h-px w-12 bg-[#b08d57]/50" />
           </div>
 
-          <h2 className="
+          <h1 className="
             font-serif text-5xl font-light
             uppercase tracking-[0.06em]
             text-[#1c1916] sm:text-6xl
           ">
             Our Gallery
-          </h2>
+          </h1>
 
           <p className="
             mx-auto mt-6 max-w-2xl

@@ -255,7 +255,7 @@ export default function Profile() {
         ===================================== */}
         <form
           onSubmit={save}
-          className="space-y-7 border border-black/5 bg-white p-5 sm:p-7"
+          className="space-y-7 border border-black/5 bg-white p-7"
         >
           <h2 className="font-serif text-2xl">
             Personal details
@@ -460,7 +460,7 @@ export default function Profile() {
         ===================================== */}
         <form
           onSubmit={changePassword}
-          className="space-y-7 border border-black/5 bg-white p-5 sm:p-7"
+          className="space-y-7 border border-black/5 bg-white p-7"
         >
           <h2 className="font-serif text-2xl">
             Change password

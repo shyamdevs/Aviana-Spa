@@ -13,8 +13,6 @@
   html {
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
-    /* Anchored/scrolled-into-view content clears the fixed navbar. */
-    scroll-padding-top: 6rem;
   }
   body {
     background-color: #fdfcf9;
@@ -29,36 +27,13 @@
     color: #fdfcf9;
   }
   :focus-visible {
-    outline: 2px solid #b08d57;
+    outline: 1px solid #b08d57;
     outline-offset: 3px;
   }
-}
-
-/* Unlayered on purpose: it must beat Tailwind's `text-sm` utilities. iOS Safari zooms
-   the page whenever a focused field is under 16px, which breaks every form on phones. */
-@media (max-width: 767px) {
-  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
-  select,
-  textarea {
-    font-size: 16px;
-  }
-}
-
-/* Fixed/sticky bottom bars: pad for the iPhone home indicator and Android gesture bar. */
-.pb-safe {
-  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
 }
 
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
-  }
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
   }
 }
