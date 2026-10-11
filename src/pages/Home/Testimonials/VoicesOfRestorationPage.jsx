@@ -12,10 +12,10 @@ export default function VoicesOfRestorationPage() {
             <span className="text-xs tracking-[0.25em] uppercase text-[#8c8275] font-medium block mb-2">
               — VOICES OF RESTORATION
             </span>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif text-[#1c1a17] leading-tight">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif text-[#1c1a17] leading-tight">
               Echoes of Stillness from <br className="hidden md:block" />
               <span className="italic font-normal text-[#8a7258]">Our Cherished Patrons</span>
-            </h1>
+            </h2>
           </div>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">

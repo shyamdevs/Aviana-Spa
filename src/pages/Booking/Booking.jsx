@@ -8,8 +8,8 @@ export default function Booking() {
   return (
     <div className="overflow-x-clip bg-[#fdfcf9]">
       <Navbar />
-      <section className="px-6 pb-24 pt-36 sm:px-10 lg:px-12 lg:pb-32 lg:pt-44">
-        <div className="mx-auto grid max-w-7xl gap-16 lg:grid-cols-12 lg:gap-20">
+      <section className="px-5 pb-12 pt-28 sm:px-10 sm:pb-24 sm:pt-36 lg:px-12 lg:pb-32 lg:pt-44">
+        <div className="mx-auto grid max-w-7xl gap-8 sm:gap-12 lg:grid-cols-12 lg:gap-20">
           <div className="lg:col-span-5">
             <SectionHeading
               align="left"
