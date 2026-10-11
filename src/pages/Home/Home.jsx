@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import LotusPreloader from '../../components/Preloader'
 import Navbar from '../../layout/Navbar/Navbar'
-import HeroSlider from './HeroSlider/HeroSlider'
+import Hero from './Hero/Hero'
 import WelcomeSection from './WelcomeMessage/WelcomeSection';
 import FeaturedTreatments from './FeaturedTreatments/FeaturedTreatments';
 import SpaExperience from './spaExperience/SpaExperience';
@@ -40,8 +40,8 @@ export default function Home() {
         />
       )}
 
-    <Navbar/>
-    <HeroSlider/>
+    <Navbar onDark/>
+    <Hero/>
     <WelcomeSection/>
     <FeaturedTreatments/>
     <SpaExperience/>

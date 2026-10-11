@@ -10,7 +10,7 @@ export const navItems = [
   { name: "CONTACT", href: "/contact" },
 ];
 
-const NavLinks = () => {
+const NavLinks = ({ light = false }) => {
   const { pathname } = useLocation();
 
   return (
@@ -23,7 +23,7 @@ const NavLinks = () => {
               to={item.href}
               aria-current={active ? "page" : undefined}
               className={`text-[11px] font-medium tracking-[0.2em] transition-colors duration-300 ${
-                active ? "text-[#B08D57]" : "text-[#4a4a4a] hover:text-[#B08D57]"
+                active ? "text-[#B08D57]" : light ? "text-white/90 hover:text-[#e3c996]" : "text-[#4a4a4a] hover:text-[#B08D57]"
               }`}
             >
               {item.name}
