@@ -1,5 +1,4 @@
-
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const supportTicketSchema = new mongoose.Schema(
   {
@@ -46,6 +45,8 @@ const supportTicketSchema = new mongoose.Schema(
   }
 );
 
-module.exports =
+const SupportTicket =
   mongoose.models.SupportTicket ||
   mongoose.model("SupportTicket", supportTicketSchema);
+
+export default SupportTicket;

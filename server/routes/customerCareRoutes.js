@@ -1,14 +1,15 @@
-
-const express = require("express");
-const crypto = require("node:crypto");
-const { GoogleGenAI } = require("@google/genai");
-const nodemailer = require("nodemailer");
-const SupportTicket = require("../models/SupportTicket");
+import express from "express";
+import crypto from "node:crypto";
+import { GoogleGenAI } from "@google/genai";
+import nodemailer from "nodemailer";
+import SupportTicket from "../models/SupportTicket.js";
 
 const router = express.Router();
 
 const ai = process.env.GEMINI_API_KEY
-  ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
+  ? new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY,
+    })
   : null;
 
 const model = process.env.GEMINI_MODEL || "gemini-3.6-flash";
@@ -30,12 +31,6 @@ const mailer =
       })
     : null;
 
-/*
-  IMPORTANT:
-  Replace this placeholder with verified Aviana service
-  names, prices, durations and policies before launch.
-  Do not put private keys or customer information here.
-*/
 const BUSINESS_CONTEXT = `
 You are Aviana Spa's polite customer-care assistant.
 
@@ -54,9 +49,37 @@ Keep responses friendly, professional and concise.
 `;
 
 function wantsHumanSupport(message) {
-  return /\b(customer care|customer support|human|real person|live agent|support agent|representative|talk to.*(person|agent|support|customer care|someone|somebody)|speak to.*(person|agent|support|customer care|someone|somebody)|connect me with.*(support|person|agent|customer care))\b/i.test(
-    message
-  );
+  const patterns = [
+    /\b(customer care|customer support|human|real person|live agent|support agent|representative)\b/i,
+    /\b(talk|speak|connect)\s+(?:me\s+)?(?:to|with)\s+(?:a\s+)?(?:person|agent|support|customer care|someone|somebody)\b/i,
+  ];
+
+  return patterns.some((pattern) => pattern.test(message));
+}
+
+function getInteractionText(interaction) {
+  // Support the text field if exposed by the installed SDK version.
+  if (
+    typeof interaction?.output_text === "string" &&
+    interaction.output_text.trim()
+  ) {
+    return interaction.output_text.trim();
+  }
+
+  // Interactions API commonly returns an outputs array.
+  if (Array.isArray(interaction?.outputs)) {
+    return interaction.outputs
+      .filter(
+        (output) =>
+          output?.type === "text" &&
+          typeof output.text === "string"
+      )
+      .map((output) => output.text)
+      .join("\n")
+      .trim();
+  }
+
+  return "";
 }
 
 /* POST /api/chat */
@@ -75,11 +98,12 @@ router.post("/chat", async (req, res) => {
 
     if (message.length > 2000) {
       return res.status(400).json({
-        error: "Message is too long. Please use 2000 characters or fewer.",
+        error:
+          "Message is too long. Please use 2000 characters or fewer.",
       });
     }
 
-    // Allow human handoff even if the AI key is unavailable.
+    // Human handoff works even without a Gemini API key.
     if (wantsHumanSupport(message)) {
       return res.json({
         reply:
@@ -90,7 +114,8 @@ router.post("/chat", async (req, res) => {
 
     if (!ai) {
       return res.status(503).json({
-        error: "Aviana Care is not configured yet. Please try again later.",
+        error:
+          "Aviana Care is not configured yet. Please try again later.",
       });
     }
 
@@ -103,11 +128,16 @@ router.post("/chat", async (req, res) => {
       },
     });
 
-    const reply = interaction.output_text?.trim();
+    const reply = getInteractionText(interaction);
 
     if (!reply) {
+      console.error(
+        "Aviana Care returned an empty Gemini response."
+      );
+
       return res.status(502).json({
-        error: "Aviana Care couldn't generate a reply. Please try again.",
+        error:
+          "Aviana Care couldn't generate a reply. Please try again.",
       });
     }
 
@@ -116,10 +146,14 @@ router.post("/chat", async (req, res) => {
       handoff: false,
     });
   } catch (error) {
-    console.error("Aviana Care chat error:", error.message);
+    console.error(
+      "Aviana Care chat error:",
+      error?.message || error
+    );
 
     return res.status(502).json({
-      error: "Aviana Care is temporarily unavailable. Please try again.",
+      error:
+        "Aviana Care is temporarily unavailable. Please try again.",
     });
   }
 });
@@ -128,7 +162,9 @@ router.post("/chat", async (req, res) => {
 router.post("/support-tickets", async (req, res) => {
   try {
     const name =
-      typeof req.body?.name === "string" ? req.body.name.trim() : "";
+      typeof req.body?.name === "string"
+        ? req.body.name.trim()
+        : "";
 
     const contact =
       typeof req.body?.contact === "string"
@@ -142,27 +178,30 @@ router.post("/support-tickets", async (req, res) => {
 
     if (name.length < 2 || name.length > 100) {
       return res.status(400).json({
-        error: "Please enter a name between 2 and 100 characters.",
+        error:
+          "Please enter a name between 2 and 100 characters.",
       });
     }
 
     if (contact.length < 4 || contact.length > 200) {
       return res.status(400).json({
-        error: "Please enter a valid email address or phone contact.",
+        error:
+          "Please enter a valid email address or phone contact.",
       });
     }
 
     if (message.length > 1000) {
       return res.status(400).json({
-        error: "Your message must be 1000 characters or fewer.",
+        error:
+          "Your message must be 1000 characters or fewer.",
       });
     }
 
     const reference =
-      "AVC-" + crypto.randomBytes(4).toString("hex").toUpperCase();
+      "AVC-" +
+      crypto.randomBytes(4).toString("hex").toUpperCase();
 
-    // Save the ticket in the existing MongoDB database.
-    await SupportTicket.create({
+    const ticket = await SupportTicket.create({
       reference,
       name,
       contact,
@@ -171,8 +210,8 @@ router.post("/support-tickets", async (req, res) => {
       source: "website_chat",
     });
 
-    // Optional email notification to the support team.
-    // A mail failure must not undo the saved ticket.
+    // Email notification is optional. Ticket creation should remain
+    // successful if the SMTP notification fails.
     if (mailer && process.env.CUSTOMER_CARE_EMAIL) {
       try {
         await mailer.sendMail({
@@ -191,19 +230,25 @@ router.post("/support-tickets", async (req, res) => {
       } catch (mailError) {
         console.error(
           "Aviana Care email notification failed:",
-          mailError.message
+          mailError?.message || mailError
         );
       }
     }
 
-    return res.status(201).json({ reference });
+    return res.status(201).json({
+      reference: ticket.reference,
+    });
   } catch (error) {
-    console.error("Aviana Care ticket error:", error.message);
+    console.error(
+      "Aviana Care ticket error:",
+      error?.message || error
+    );
 
     return res.status(500).json({
-      error: "We couldn't save your support request. Please try again.",
+      error:
+        "We couldn't save your support request. Please try again.",
     });
   }
 });
 
-module.exports = router;
+export default router;
