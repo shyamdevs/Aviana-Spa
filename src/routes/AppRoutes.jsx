@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import ScrollToTop from '../components/ScrollToTop';
+import CustomerCareWidget from '../components/CustomerCareWidget';
 import { AuthProvider } from '../store/AuthContext';
 import { AdminProvider } from '../store/AdminContext';
 import ProtectedRoute from '../components/ProtectedRoute';
@@ -16,5 +17,5 @@ export default function AppRoutes() {
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} /><Route path="/dashboard/bookings" element={<ProtectedRoute><UserBookings /></ProtectedRoute>} /><Route path="/dashboard/bookings/:id" element={<ProtectedRoute><BookingDetail /></ProtectedRoute>} /><Route path="/dashboard/bookings/:id/reschedule" element={<ProtectedRoute><Reschedule /></ProtectedRoute>} /><Route path="/dashboard/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} /><Route path="/dashboard/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} /><Route path="/dashboard/settings" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
         <Route path="/admin/login" element={<AdminLogin />} /><Route path="/admin" element={<AdminGuard><AdminOverview /></AdminGuard>} /><Route path="/admin/users" element={<AdminGuard><Users /></AdminGuard>} /><Route path="/admin/users/:id" element={<AdminGuard><AdminUserDetail /></AdminGuard>} /><Route path="/admin/bookings" element={<AdminGuard><Bookings /></AdminGuard>} /><Route path="/admin/bookings/:id" element={<AdminGuard><AdminBookingDetail /></AdminGuard>} /><Route path="/admin/payments" element={<AdminGuard><AdminPayments /></AdminGuard>} /><Route path="/admin/therapists" element={<AdminGuard><Therapists /></AdminGuard>} /><Route path="/admin/services" element={<AdminGuard><AdminServices /></AdminGuard>} /><Route path="/admin/extra-services" element={<AdminGuard><AdminExtraServices /></AdminGuard>} /><Route path="/admin/booking-payment" element={<AdminGuard><AdminBookingOption /></AdminGuard>} /><Route path="/admin/settings" element={<AdminGuard><Settings /></AdminGuard>} /><Route path="/admin/availability" element={<AdminGuard><AdminAvailability /></AdminGuard>} /><Route path="/admin/activity-logs" element={<AdminGuard><ActivityLogs /></AdminGuard>} />
         <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes></AdminProvider></AuthProvider></BrowserRouter>
+    </Routes><CustomerCareWidget /></AdminProvider></AuthProvider></BrowserRouter>
 }
