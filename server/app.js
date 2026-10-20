@@ -17,6 +17,7 @@ import { webhook } from './controllers/paymentController.js';
 import { notFound, errorHandler } from './middleware/error.js';
 import { dbReady, connectDB } from './config/db.js';
 import { env, requireServerConfig, runtimeConfig } from './config/env.js';
+const customerCareRoutes = require("./routes/customerCareRoutes");
 
 const app = express();
 app.set('trust proxy', 1);
@@ -133,6 +134,7 @@ app.use('/api', requireServerConfig, async (req, res, next) => {
   }
 });
 
+app.use("/api", customerCareRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api', catalogRoutes);
 app.use('/api', bookingRoutes);

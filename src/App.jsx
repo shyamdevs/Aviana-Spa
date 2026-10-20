@@ -1,5 +1,6 @@
 import React from 'react';
 import AppRoutes from './routes/AppRoutes';
+import CustomerCare from './components/CustomerCare';
 
 
 function App() {
@@ -8,6 +9,7 @@ function App() {
     <>
     
    <AppRoutes/>
+   <CustomerCare/>
     
     
     </>
