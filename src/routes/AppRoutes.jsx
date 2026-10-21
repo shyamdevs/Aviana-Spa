@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import ScrollToTop from "../components/ScrollToTop";
+import CustomerCare from "../components/CustomerCare";
 import { AuthProvider } from "../store/AuthContext";
 import { AdminProvider } from "../store/AdminContext";
 import ProtectedRoute from "../components/ProtectedRoute";
@@ -226,6 +227,7 @@ export default function AppRoutes() {
             />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          <CustomerCare />
         </AdminProvider>
       </AuthProvider>
     </BrowserRouter>

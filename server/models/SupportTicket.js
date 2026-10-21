@@ -8,6 +8,14 @@ const supportTicketSchema = new mongoose.Schema(
       unique: true,
     },
 
+    // Optional because a visitor can contact customer care without signing in.
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+      index: true,
+    },
+
     name: {
       type: String,
       required: true,
