@@ -15,8 +15,8 @@ const ai = process.env.GEMINI_API_KEY
   ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
   : null;
 
-// Gemini 3.6 Flash is a supported stable model. Override via GEMINI_MODEL.
-const model = process.env.GEMINI_MODEL || "gemini-3.6-flash";
+// Flash-Lite is optimized for fast, high-throughput replies. Override via GEMINI_MODEL.
+const model = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
 const smtpPort = Number(process.env.SMTP_PORT || 587);
 const SERVICE_CACHE_TTL_MS = 30_000;
 const MAX_STORED_MESSAGES = 100;
