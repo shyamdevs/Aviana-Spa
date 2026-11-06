@@ -1,0 +1,37 @@
+{
+  "name": "aviana-server",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch start.js",
+    "start": "node start.js",
+    "seed": "node utils/seed.js",
+    "admin:provision": "node scripts/provisionAdmin.js",
+    "migrate:booking-payments": "node scripts/migrateBookingPayments.js",
+    "migrate:chat-expiry": "node scripts/backfillChatExpiry.js",
+    "check:ai": "node scripts/checkAi.js",
+    "migrate:always-open": "node scripts/setAlwaysOpen.js",
+    "test": "node --test \"tests/*.test.js\"",
+    "test:care": "node --test \"tests/care.*.test.js\" tests/smoke.test.js"
+  },
+  "dependencies": {
+    "@google/genai": "^2.30.0",
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
+    "google-auth-library": "^10.4.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.18.3",
+    "multer": "^2.0.2",
+    "nodemailer": "^7.0.13",
+    "razorpay": "^2.9.6"
+  },
+  "engines": {
+    "node": "22.x"
+  }
+}

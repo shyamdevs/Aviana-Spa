@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+/* Fonts are loaded in index.html. Wiring them into the theme makes the
+   existing font-serif / font-display / font-body / font-sans utilities work. */
+@theme {
+  --font-serif: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    /* Anchored/scrolled-into-view content clears the fixed navbar. */
+    scroll-padding-top: 6rem;
+  }
+  body {
+    background-color: #fdfcf9;
+    color: #171512;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+  ::selection {
+    background: #b08d57;
+    color: #fdfcf9;
+  }
+  :focus-visible {
+    outline: 2px solid #b08d57;
+    outline-offset: 3px;
+  }
+}
+
+/* Unlayered on purpose: it must beat Tailwind's `text-sm` utilities. iOS Safari zooms
+   the page whenever a focused field is under 16px, which breaks every form on phones. */
+@media (max-width: 767px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* Fixed/sticky bottom bars: pad for the iPhone home indicator and Android gesture bar. */
+.pb-safe {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Aviana Care typing indicator (disabled for people who prefer reduced motion). */
+@keyframes care-bounce {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.45; }
+  40% { transform: translateY(-4px); opacity: 1; }
+}
+.care-dot { animation: care-bounce 1.1s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .care-dot { animation: none; opacity: 0.8; }
+}

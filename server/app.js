@@ -1,0 +1,310 @@
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import cookieParser from "cookie-parser";
+import { rejectUnsafeInput } from "./middleware/sanitize.js";
+import { csrfProtection } from "./middleware/csrf.js";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+import authRoutes from "./routes/authRoutes.js";
+import catalogRoutes from "./routes/catalogRoutes.js";
+import bookingRoutes from "./routes/bookingRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
+import profileRoutes from "./routes/profileRoutes.js";
+import contactRoutes from "./routes/contactRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import customerCareRoutes from "./routes/customerCareRoutes.js";
+
+import {
+  adminBookingOptionRouter,
+  publicBookingOptionRouter,
+} from "./routes/bookingOptionRoutes.js";
+
+import { webhook } from "./controllers/paymentController.js";
+import { notFound, errorHandler } from "./middleware/error.js";
+import { dbReady, connectDB } from "./config/db.js";
+import {
+  env,
+  requireServerConfig,
+  runtimeConfig,
+} from "./config/env.js";
+
+const app = express();
+
+app.set("trust proxy", 1);
+
+app.use(
+  helmet({
+    crossOriginResourcePolicy: {
+      policy: "cross-origin",
+    },
+
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        baseUri: ["'self'"],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+        formAction: ["'self'"],
+
+        imgSrc: ["'self'", "data:", "blob:", "https:"],
+        fontSrc: ["'self'", "https:", "data:"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https:"],
+
+        scriptSrc: [
+          "'self'",
+          "https://checkout.razorpay.com",
+          "https://accounts.google.com",
+          "https://apis.google.com",
+        ],
+
+        frameSrc: [
+          "'self'",
+          "https://checkout.razorpay.com",
+          "https://api.razorpay.com",
+          "https://accounts.google.com",
+        ],
+
+        connectSrc: [
+          "'self'",
+          "https://api.razorpay.com",
+          "https://lumberjack.razorpay.com",
+          "https://accounts.google.com",
+        ],
+
+        upgradeInsecureRequests:
+          env.nodeEnv === "production" ? [] : null,
+      },
+    },
+  })
+);
+
+const normalizeOrigin = (value = "") =>
+  String(value).trim().replace(/\/$/, "");
+
+// Supports exact origins and configured host wildcards such as
+// https://aviana-spa-*.vercel.app.
+const originMatchers = env.allowedOrigins.map((entry) => {
+  if (!entry.includes("*")) {
+    const exactOrigin = normalizeOrigin(entry);
+    return (origin) => origin === exactOrigin;
+  }
+
+  const escapedParts = entry
+    .split("*")
+    .map((part) =>
+      part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    );
+
+  const pattern = new RegExp(
+    `^${escapedParts.join("[a-z0-9-]+")}$`,
+    "i"
+  );
+
+  return (origin) => pattern.test(origin);
+});
+
+const isAllowedOrigin = (origin = "") => {
+  // Requests without an Origin header include server-to-server calls.
+  if (!origin) return true;
+
+  const normalized = normalizeOrigin(origin);
+
+  return originMatchers.some((match) => match(normalized));
+};
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (isAllowedOrigin(origin)) {
+      return callback(null, true);
+    }
+
+    const error = new Error(
+      `Origin not allowed by CORS: ${origin || "unknown"}`
+    );
+
+    error.status = 403;
+
+    return callback(error);
+  },
+
+  credentials: true,
+  methods: [
+    "GET",
+    "HEAD",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS",
+  ],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "X-CSRF-Token",
+  ],
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
+
+/*
+ * Razorpay webhook:
+ * Keep the raw request body parser before express.json().
+ */
+app.post(
+  "/api/payments/webhook",
+  express.raw({
+    type: "application/json",
+    limit: "2mb",
+  }),
+  async (req, res, next) => {
+    try {
+      if (!runtimeConfig.ready) {
+        return res.status(503).json({
+          success: false,
+          message: "Service temporarily unavailable.",
+        });
+      }
+
+      await connectDB();
+
+      return webhook(req, res, next);
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+// Customer-care requests are tiny. Parse them with a strict limit first so an
+// oversized body is rejected (413) before the general 1 MB parser ever sees it.
+app.use(
+  ["/api/chat", "/api/support-tickets"],
+  express.json({
+    limit: "16kb",
+  })
+);
+
+app.use(["/api/auth", "/api/admin/auth", "/api/contact"], express.json({ limit: "16kb" }));
+
+app.use(
+  express.json({
+    limit: "1mb",
+  })
+);
+
+app.use(
+  express.urlencoded({
+    extended: true,
+    limit: "1mb",
+  })
+);
+
+app.use(cookieParser());
+
+// Defence in depth for cookie-authenticated, state-changing requests (see middleware/csrf.js),
+// and rejection of MongoDB-operator / prototype-pollution keys in any input.
+app.use(csrfProtection());
+app.use(rejectUnsafeInput);
+
+// Request timeout: slow or stalled handlers are cut off instead of tying up the instance.
+app.use((req, res, next) => {
+  res.setTimeout(30_000, () => { if (!res.headersSent) res.status(503).json({ success: false, message: "The request timed out." }); });
+  next();
+});
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Vercel's application filesystem is read-only.
+// Production uploads should use Cloudinary.
+if (process.env.VERCEL !== "1") {
+  app.use(
+    "/uploads",
+    express.static(path.join(__dirname, "uploads"), {
+      maxAge: env.nodeEnv === "production" ? "7d" : 0,
+    })
+  );
+}
+
+// Basic service health.
+app.get("/", (req, res) => {
+  return res.json({
+    success: true,
+    service: "aviana-api",
+    status: "online",
+  });
+});
+
+app.get("/api", (req, res) => {
+  return res.json({
+    success: true,
+    service: "aviana-api",
+    status: "online",
+    message: "Aviana API is running.",
+    health: "/api/health",
+    endpoints: {
+      services: "/api/services",
+      therapists: "/api/therapists",
+      extraServices: "/api/extra-services",
+      bookingOption: "/api/booking-option",
+    },
+  });
+});
+
+app.get("/api/health", (req, res) => {
+  return res.status(runtimeConfig.ready ? 200 : 503).json({
+    success: runtimeConfig.ready,
+    service: "aviana-api",
+    databaseConnected: dbReady(),
+    configurationReady: runtimeConfig.ready,
+
+    ...(runtimeConfig.ready || env.isProduction
+      ? {}
+      : {
+          missing: runtimeConfig.missingRequired,
+        }),
+
+    timestamp: new Date().toISOString(),
+  });
+});
+
+/*
+ * Protect API routes and connect to MongoDB before handling requests.
+ * Health endpoints above do not require a database connection.
+ */
+app.use(
+  "/api",
+  requireServerConfig,
+  async (req, res, next) => {
+    try {
+      await connectDB();
+      return next();
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+// Customer Care:
+// POST /api/chat
+// POST /api/support-tickets
+app.use("/api", customerCareRoutes);
+
+app.use("/api/auth", authRoutes);
+app.use("/api", catalogRoutes);
+app.use("/api", bookingRoutes);
+app.use("/api", paymentRoutes);
+app.use("/api", profileRoutes);
+app.use("/api", contactRoutes);
+app.use("/api/admin", adminRoutes);
+
+app.use("/api/admin", adminBookingOptionRouter);
+app.use("/api", publicBookingOptionRouter);
+
+app.use(notFound);
+app.use(errorHandler);
+
+export default app;

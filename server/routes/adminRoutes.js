@@ -1,0 +1,63 @@
+import { Router } from 'express';
+import * as admin from '../controllers/adminController.js';
+import * as auth from '../controllers/adminAuthController.js';
+import { guard, protectAdmin } from '../middleware/adminAuth.js';
+import { imageUpload, verifyUploadedImage } from '../utils/upload.js';
+import { createExtraService, deleteExtraService, listAdminExtraServices, setExtraServiceActive, updateExtraService, uploadExtraServiceImage } from '../controllers/extraServiceController.js';
+import { adminLoginLimiters, adminMfaLimiter } from '../utils/authLimiters.js';
+
+const router = Router();
+const img = [imageUpload.single('image'), verifyUploadedImage];
+const blockedBody = (value) => (req, res, next) => { req.body = { ...req.body, blocked: value }; next(); };
+
+// ---- authentication (every step is rate-limited; none of them issues a session without MFA)
+router.post('/auth/login', ...adminLoginLimiters, auth.adminLogin);
+router.post('/auth/mfa', adminMfaLimiter, auth.adminMfa);
+router.post('/auth/mfa/enroll', adminMfaLimiter, auth.adminEnroll);
+router.get('/auth/me', protectAdmin, auth.adminMe);
+router.post('/auth/logout', protectAdmin, auth.adminLogout);
+router.post('/auth/logout-all', protectAdmin, auth.adminLogoutAll);
+router.post('/auth/reauth', protectAdmin, adminMfaLimiter, auth.adminReauth);
+router.post('/auth/mfa/reset', ...guard('dashboard', { reauth: true }), adminMfaLimiter, auth.adminMfaReset);
+router.get('/auth/sessions', protectAdmin, auth.adminSessions);
+router.delete('/auth/sessions/:id', protectAdmin, auth.adminRevokeSession);
+
+// ---- every route below declares its own permission; sensitive ones also need a recent re-auth
+router.get('/dashboard', ...guard('dashboard'), admin.dashboard);
+router.get('/users', ...guard('users:read'), admin.listUsers);
+router.get('/users/:id', ...guard('users:read'), admin.userDetail);
+router.patch('/users/:id/block', ...guard('users:block', { reauth: true }), blockedBody(true), admin.setUserBlocked);
+router.patch('/users/:id/unblock', ...guard('users:block', { reauth: true }), blockedBody(false), admin.setUserBlocked);
+router.delete('/users/:id', ...guard('users:delete', { reauth: true }), admin.deleteUser);
+router.get('/bookings', ...guard('bookings:read'), admin.listBookings);
+router.get('/bookings/:id', ...guard('bookings:read'), admin.bookingDetail);
+router.post('/bookings/:id/remaining-payment', ...guard('payments:record', { reauth: true }), admin.recordRemainingPayment);
+router.patch('/bookings/:id/status', ...guard('bookings:write'), admin.updateBookingStatus);
+router.get('/payments', ...guard('payments:read'), admin.listPayments);
+router.post('/payments/:id/refund', ...guard('payments:refund', { reauth: true }), admin.refundPayment);
+router.get('/therapists', ...guard('dashboard'), admin.listTherapists);
+router.post('/therapists', ...guard('catalog:write'), admin.createTherapist);
+router.patch('/therapists/:id', ...guard('catalog:write'), admin.updateTherapist);
+router.patch('/therapists/:id/status', ...guard('catalog:write'), admin.setTherapistActive);
+router.delete('/therapists/:id', ...guard('catalog:write'), admin.deleteTherapist);
+router.post('/therapists/:id/image', ...guard('catalog:write'), ...img, admin.uploadTherapistImage);
+router.get('/extra-services', ...guard('dashboard'), listAdminExtraServices);
+router.post('/extra-services', ...guard('catalog:write'), createExtraService);
+router.patch('/extra-services/:id', ...guard('catalog:write'), updateExtraService);
+router.put('/extra-services/:id', ...guard('catalog:write'), updateExtraService);
+router.patch('/extra-services/:id/status', ...guard('catalog:write'), setExtraServiceActive);
+router.delete('/extra-services/:id', ...guard('catalog:write'), deleteExtraService);
+router.post('/extra-services/:id/image', ...guard('catalog:write'), ...img, uploadExtraServiceImage);
+router.get('/services', ...guard('dashboard'), admin.listServices);
+router.post('/services', ...guard('catalog:write'), admin.createService);
+router.patch('/services/:id', ...guard('catalog:write'), admin.updateService);
+router.patch('/services/:id/status', ...guard('catalog:write'), admin.setServiceActive);
+router.delete('/services/:id', ...guard('catalog:write'), admin.deleteService);
+router.post('/services/:id/image', ...guard('catalog:write'), ...img, admin.uploadServiceImage);
+router.get('/activity-logs', ...guard('logs:read'), admin.activityLogs);
+router.get('/availability/blocks', ...guard('dashboard'), admin.listAvailabilityBlocks);
+router.post('/availability/blocks', ...guard('availability:write'), admin.createAvailabilityBlock);
+router.delete('/availability/blocks/:id', ...guard('availability:write'), admin.deleteAvailabilityBlock);
+router.get('/settings', ...guard('settings:read'), admin.getSettings);
+router.patch('/settings', ...guard('settings:write', { reauth: true }), admin.updateSettings);
+export default router;
